@@ -4,17 +4,31 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { TextArea } from '@/components/ui/textarea';
 import { TextFieldRoot } from '@/components/ui/textfield';
 import { db } from '@/lib/db';
-import { posts } from '@/lib/db/schema';
+import { posts, TPostClient } from '@/lib/db/schema';
+import { createClerkClient } from '@clerk/backend';
 import { createAsync, query } from '@solidjs/router';
-import { desc } from 'drizzle-orm';
-import { For } from 'solid-js';
 import { SignedIn } from 'clerk-solidjs';
+import { desc } from 'drizzle-orm';
+import { For, Show, Suspense } from 'solid-js';
+import Loading from '@/components/loader';
 
 const getPosts = query(async () => {
   'use server';
 
+  const ctx = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
   const dbPosts = await db.select().from(posts).orderBy(desc(posts.createdAt));
-  return dbPosts;
+  const userPosts: TPostClient[] = [];
+
+  for (const post of dbPosts) {
+    const user = await ctx.users.getUser(post.user);
+    userPosts.push({
+      ...post,
+      username: user.username!,
+      image: user.imageUrl,
+    });
+  }
+
+  return userPosts;
 }, 'posts');
 
 export default function Home() {
@@ -44,17 +58,17 @@ export default function Home() {
         </form>
       </SignedIn>
       <div class="mt-8 flex flex-col gap-4 pb-8">
-        <For each={posts()}>
-          {(post) => (
-            <Post
-              post={{
-                ...post,
-                username: 'james',
-                image: 'https://www.arithefirst.com/images/teto.webp',
-              }}
-            />
-          )}
-        </For>
+        <Suspense
+          fallback={
+            <div class="flex w-full items-center justify-center">
+              <Loading />
+            </div>
+          }
+        >
+          <Show when={posts()} fallback={<></>}>
+            <For each={posts()}>{(post) => <Post post={post} />}</For>
+          </Show>
+        </Suspense>
       </div>
     </main>
   );
