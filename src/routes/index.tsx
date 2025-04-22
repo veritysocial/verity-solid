@@ -8,6 +8,7 @@ import { posts } from '@/lib/db/schema';
 import { createAsync, query } from '@solidjs/router';
 import { desc } from 'drizzle-orm';
 import { For } from 'solid-js';
+import { SignedIn } from 'clerk-solidjs';
 
 const getPosts = query(async () => {
   'use server';
@@ -20,26 +21,28 @@ export default function Home() {
   const posts = createAsync(() => getPosts());
   return (
     <main class="pt-8">
-      <form>
-        <Card class="border-primary mx-auto w-11/12 rounded-lg md:w-1/2">
-          <CardHeader>
-            <CardTitle>Create Post</CardTitle>
-            <CardDescription>
-              Posting from Verity <span class="font-bold text-[#315A99]">Solid</span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TextFieldRoot>
-              <TextArea />
-            </TextFieldRoot>
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" class="cursor-pointer">
-              Post!
-            </Button>
-          </CardFooter>
-        </Card>
-      </form>
+      <SignedIn>
+        <form>
+          <Card class="border-primary mx-auto w-11/12 rounded-lg md:w-1/2">
+            <CardHeader>
+              <CardTitle>Create Post</CardTitle>
+              <CardDescription>
+                Posting from Verity <span class="font-bold text-[#315A99]">Solid</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TextFieldRoot>
+                <TextArea />
+              </TextFieldRoot>
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" class="cursor-pointer">
+                Post!
+              </Button>
+            </CardFooter>
+          </Card>
+        </form>
+      </SignedIn>
       <div class="mt-8 flex flex-col gap-4 pb-8">
         <For each={posts()}>
           {(post) => (
