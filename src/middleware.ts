@@ -7,6 +7,5 @@ export default createMiddleware({
       publishableKey: process.env.VITE_CLERK_PUBLISHABLE_KEY,
       secretKey: process.env.CLERK_SECRET_KEY,
     }),
-    // ... other middleware
   ],
 });

@@ -6,11 +6,23 @@ import { TextFieldRoot } from '@/components/ui/textfield';
 import { db } from '@/lib/db';
 import { posts, TPostClient } from '@/lib/db/schema';
 import { createClerkClient } from '@clerk/backend';
-import { createAsync, query } from '@solidjs/router';
+import { createAsync, query, action } from '@solidjs/router';
 import { SignedIn } from 'clerk-solidjs';
 import { desc } from 'drizzle-orm';
 import { For, Show, Suspense } from 'solid-js';
 import Loading from '@/components/loader';
+
+const createPost = action(async (formData: FormData) => {
+  const content = formData.get('content');
+
+  await fetch('/api/post/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ content }),
+  });
+});
 
 const getPosts = query(async () => {
   'use server';
@@ -36,7 +48,7 @@ export default function Home() {
   return (
     <main class="pt-8">
       <SignedIn>
-        <form>
+        <form action={createPost} method="post">
           <Card class="border-primary mx-auto w-11/12 rounded-lg md:w-1/2">
             <CardHeader>
               <CardTitle>Create Post</CardTitle>
@@ -46,7 +58,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <TextFieldRoot>
-                <TextArea />
+                <TextArea id="content" name="content" class="min-h-24" />
               </TextFieldRoot>
             </CardContent>
             <CardFooter>
